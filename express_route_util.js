@@ -35,16 +35,30 @@
 // ``/almanac/questions/edit/``
 
 // This utility loads source files dynamically, and requires the fs and path
-// libraries to traverse the directory structure. The utils object provides a
-// function to merge Javascript objects together, which is the only utility
-// that is used.
+// libraries to traverse the directory structure.
 var fs = require('fs');
 var path = require('path');
-var utils = require('./utils');
 
 // A hash of controllers to URL Paths
 var controllerToPathHash = {};
 var defaultMethod = "get";
+
+// ## The *mergeObjs* function
+// is a helper function that clones the value of various object into a new one.
+// This simplistic one is fast, but assumes no recursive objects to merge.
+function mergeObjs() {
+	var outObj = {};
+	for(var i in arguments) {
+		if(arguments[i] instanceof Object) {
+			for(var j in arguments[i]) {
+				// Does not check for collisions, newer object
+				// definitions clobber old definitions
+				outObj[j] = arguments[i][j];
+			}
+		}
+	}
+	return outObj;
+}
 
 // ## The *loadControllers* function
 // is a recursive function that ``require``s controllers as it traverses the
@@ -53,7 +67,7 @@ var defaultMethod = "get";
 function loadControllers(controllerPath, controllerObj) {
 	if(path.existsSync(controllerPath)) {
 		if(path.existsSync(path.join(controllerPath, 'controllers.js'))) {
-			controllerObj = utils.mergeObjs(controllerObj, require(path.join(path.resolve(controllerPath), 'controllers')));
+			controllerObj = mergeObjs(controllerObj, require(path.join(path.resolve(controllerPath), 'controllers')));
 		}
 		var pathChildren = fs.readdirSync(controllerPath);
 		for(var i = 0; i < pathChildren.length; i++) {
