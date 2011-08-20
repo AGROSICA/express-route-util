@@ -28,6 +28,19 @@
 // URLs are assembled relative to their location in the tree, so the
 // ``social.editProfile`` controller would have a URL of
 // ``/social/profile/edit/``
+//
+// Usage:
+//    var router = require("./express-route-util");
+//    
+//    router.setDefaultMethod("get");
+//    router.registerRoutes(app, urlJSON, "/path/to/controllers/");
+//    var href = router.getControllerUrl("social.viewProfile", {
+//        username: "dellis"
+//    });
+//
+// Where ``app`` is the Express application object, ``urlJSON`` is the JSON
+// object relating paths to controllers, and ``"/path/to/controllers/"`` is
+// the location of the controllers for the project (can be a relative URL).
 
 // This utility loads source files dynamically, and requires the fs and path
 // libraries to traverse the directory structure.
