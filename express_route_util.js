@@ -6,33 +6,28 @@
 //
 //     controllers/
 //       controllers.js
-//       almanac/
-//         controllers.js
-//         questions/
-//           controllers.js
 //       social/
 //         controllers.js
+//         helper_lib.js
 //
 // The URL hierarchy is defined by the user in a simple JSON tree such as:
 //
-//     {
-//       '/': 'index',
-//       '/almanac' : {
-//         '/': 'almanac.index',
-//         '/questions': {
-//           '/': 'almanac.questions.index',
-//           'get,post/edit': ['common.requireLogin', 'almanac.questions.edit']
-//         }
-//       },
-//       '/social': {
-//         '/': 'social.index',
-//         '/find': 'social.find'
-//       }
-//     }
+//    {
+//        '/': 'index',
+//        'get,post/login': 'login',
+//        'post/logout': ['common.requireLogin', 'logout'],
+//        '/social' : {
+//            '/': 'social.index',
+//            '/profile': {
+//                '/:username': 'social.viewProfile',
+//                'get,post/edit': ['common.requireLogin', 'social.editProfile']
+//            }
+//        }
+//    }
 //
 // URLs are assembled relative to their location in the tree, so the
-// ``almanac.questions.edit`` controller would have a URL of
-// ``/almanac/questions/edit/``
+// ``social.editProfile`` controller would have a URL of
+// ``/social/profile/edit/``
 
 // This utility loads source files dynamically, and requires the fs and path
 // libraries to traverse the directory structure.
