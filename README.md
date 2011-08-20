@@ -11,6 +11,7 @@ defined to use a directory hierarchy like so:
         helper_lib.js
 
 The URL hierarchy is defined by the user in a simple JSON tree such as:
+
 ```js
     {
         '/': 'index',
@@ -25,10 +26,12 @@ The URL hierarchy is defined by the user in a simple JSON tree such as:
         }
     }
 ```
+
 URLs are assembled relative to their location in the tree, so the
 ``social.editProfile`` controller would have a URL of ``/social/profile/edit/``
 
 ## Usage:
+
 ```js
     var router = require("express-route-util");
     
@@ -38,6 +41,7 @@ URLs are assembled relative to their location in the tree, so the
         username: "dellis"
     });
 ```
+
 Where ``app`` is the Express application object, ``urlJSON`` is the JSON
 object relating paths to controllers, and ``"/path/to/controllers/"`` is
 the location of the controllers for the project (can be a relative URL).
@@ -45,9 +49,11 @@ the location of the controllers for the project (can be a relative URL).
 ## Installation:
 
 Using [NPM](http://www.npmjs.org), type:
+
 ```sh
     npm install express-route-utility
 ```
+
 ## License (MIT):
 
 Copyright (C) 2011 by Agrosica, Inc.
