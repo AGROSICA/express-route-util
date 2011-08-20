@@ -51,7 +51,7 @@ the location of the controllers for the project (can be a relative URL).
 Using [NPM](http://www.npmjs.org), type:
 
 ```sh
-    npm install express-route-utility
+    npm install express-route-util
 ```
 
 ## License (MIT):
