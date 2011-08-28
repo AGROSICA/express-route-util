@@ -114,52 +114,85 @@ function getController(controllers, controllerRoute) {
 // the *Express* URL controllers for the HTTP method specified by the
 // ``httpMethod`` property attached to the controller. While attaching
 // controllers to URLs, it builds the ``controllerToPathHash`` hash table.
-function buildRoutes(express, controllers, routeObj, currPath) {
+function buildRoutes(express, controllers, routeObj, currPath, required) {
+	// Construct the `required` objects if not instantiated
+	if(!required) { required = {prefix: [], postfix: []}; }
+	if(!routeObj.required) { routeObj.required = {prefix: [], postfix: []}; }
+
+	// Set the default `depth` for `required` methods to Infinity, so they affect all levels below them.
+	if(!routeObj.required.depth) { routeObj.required.depth = Infinity; }
+
+	// Add the newly-defined required methods to the `required` object
+	if(routeObj.required.prefix) { required.prefix = required.prefix.concat(routeObj.required.prefix); }
+	if(routeObj.required.postfix) { required.postfix = routeObj.required.postfix.concat(required.postfix); }
+
+	// Remove no-longer applicable methods from the `required` object, and decrement the `depth` counter
+	var adjustDepth = function(objArray) {
+		for(var i = 0; i < objArray.length; i++) {
+			if(typeof(objArray[i]) != "object") { objArray[i] = new String(objArray[i]); }
+			if(!objArray[i].depth) { objArray[i].depth = routeObj.required.depth; }
+			if(objArray[i].depth < 0) {
+				objArray.splice(i, 1);
+				i--;
+				continue;
+			}
+			objArray[i].depth--;
+		}
+	};
+	adjustDepth(required.prefix);
+	adjustDepth(required.postfix);
+
+	// Construct the routes for all routes in the current object, and traverse down the tree
 	for(var route in routeObj) {
+		if(route == "required") { continue; } // Not a route
+
+		// This is a leaf-node and construction should occur
 		if(typeof(routeObj[route]) == "string" || routeObj[route] instanceof Array) {
+			// Initialize the method and URL variables
 			var theMethod = defaultMethod;
 			var routeUrl = route;
+
+			// Determine the actual HTTP method(s) to use and correct the URL
 			if(routeUrl.match(/^(get|post|put|del|all)\//i)) { //Single method type
 				theMethod = RegExp.$1.toLowerCase();
 				routeUrl = routeUrl.replace(/^(get|post|pul|del|all)/i, "");
 			} else if(routeUrl.match(/^([adeglopstu,]+)\//i)) { //Multiple method types
 				theMethod = RegExp.$1.toLowerCase().split(",");
 				routeUrl = routeUrl.replace(/^([adeglopstu,]*)/i, "");
-			} else {
-				theMethod = defaultMethod;
 			}
+			
+			// Attach the URL path from parent nodes to this node
 			var routeUrl = currPath != "" ? path.join(currPath, routeUrl) : routeUrl;
-			if(typeof(routeObj[route]) == "string") {
-				var controller = getController(controllers, routeObj[route]);
-				controllerToPathHash[routeObj[route]] = routeUrl;
-				routeUrl = routeUrl != '/' ? routeUrl.replace(/\/$/, "") : '/';
-				if(theMethod instanceof Array) {
-					for(var i = 0; i < theMethod.length; i++) {
-						express[theMethod[i]](routeUrl, controller);
-					}
-				} else {
-					express[theMethod](routeUrl, controller);
+
+			// Remove trailing slashes except on the root node
+			routeUrl = routeUrl != '/' ? routeUrl.replace(/\/$/, '') : '/';
+
+			// Construct an array of strings referencing the desired route methods
+			var expressCall = [].concat(required.prefix, routeObj[route], required.postfix);
+
+			// Convert the strings into function references and register the function with the URL lookup hashtable
+			for(var i = 0; i < expressCall.length; i++) {
+				expressCall[i] = getController(controllers, expressCall[i]);
+				controllerToPathHash[expressCall[i]] = routeUrl;
+			}
+
+			// Add the path to the beginning of the array to match the Express API
+			expressCall.unshift(routeUrl);
+
+			// Attach the controller(s) for the URL for each HTTP method
+			if(theMethod instanceof Array) {
+				for(var i = 0; i < theMethod.length; i++) {
+					express[theMethod[i]].apply(express, expressCall);
 				}
 			} else {
-				var expressCall = [];
-				for(var i = 0; i < routeObj[route].length; i++) {
-					expressCall[i] = getController(controllers, routeObj[route][i]);
-					controllerToPathHash[routeObj[route][i]] = routeUrl;
-				}
-				routeUrl = routeUrl != '/' ? routeUrl.replace(/\/$/, "") : '/';
-				expressCall.unshift(routeUrl);
-				if(theMethod instanceof Array) {
-					for(var i = 0; i < theMethod.length; i++) {
-						express[theMethod[i]].apply(express, expressCall);
-					}
-				} else {
-					express[theMethod].apply(express, expressCall);
-				}
+				express[theMethod].apply(express, expressCall);
 			}
+		// Recurse into the object and handle its leaves
 		} else if(typeof(routeObj[route] == "object")) {
-			buildRoutes(express, controllers, routeObj[route], path.join(currPath, route));
+			buildRoutes(express, controllers, routeObj[route], path.join(currPath, route), required);
+		// Unsupported datatype encountered
 		} else {
-			throw "Invalid Route Definition";
+			throw new Error("Invalid Route Definition");
 		}
 	}
 }
@@ -200,4 +233,21 @@ exports.setDefaultMethod = function(theMethod) {
 	} else {
 		throw "Invalid HTTP method name: " + theMethod + ". Should be one of: get, post, put, del, or all.";
 	}
+};
+
+// ## The *DepthString* constructor
+// is a helper function for advanced usage of the new `required` properties, to
+// let one construct a set of required methods with varying depths. Not sure if
+// there is any use-case for this, but the flexibility is there and it won't
+// impact anyone to have it.
+exports.DepthString = function() {
+	var str = "", dpt = Infinity;
+	if(typeof(arguments[0]) == "string") { str = arguments[0]; }
+	if(typeof(arguments[1]) == "string") { str = arguments[1]; }
+	if(typeof(arguments[0]) == "number") { dpt = arguments[0]; }
+	if(typeof(arguments[1]) == "number") { dpt = arguments[1]; }
+
+	var dptStr = new String(str);
+	dptStr.depth = dpt;
+	return dptStr;
 };
