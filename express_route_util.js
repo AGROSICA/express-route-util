@@ -88,7 +88,7 @@ function loadControllers(controllerPath, controllerObj) {
 			}
 		}
 	} else {
-		throw "Controller Path Object Invalid";
+		throw new Error("Controller Path Invalid");
 	}
 	return controllerObj;
 }
@@ -103,7 +103,7 @@ function getController(controllers, controllerRoute) {
 		if(controller[hierarchy[i]]) {
 			controller = controller[hierarchy[i]];
 		} else {
-			throw "Invalid Controller Path Found: " + hierarchy;
+			throw new Error("Invalid Controller Path Found: " + hierarchy);
 		}
 	}
 	return controller;
@@ -204,7 +204,7 @@ exports.registerRoutes = function(express, pathToControllerTree, controllerPath)
 	if(controllerPath == null) {
 		controllerPath = "./";
 	} else if(typeof(controllerPath) != "string") {
-		throw "Path must be a string or not included";
+		throw new Error("Path must be a string or not included");
 	}
 	var controllers = loadControllers(controllerPath, {});
 	buildRoutes(express, controllers, pathToControllerTree, "");
@@ -220,7 +220,7 @@ exports.getControllerUrl = function(controller, params) {
 	}
 	thePath = thePath.replace(/:[^\?]*\?/g, "");
 	if(thePath.match(/:/)) {
-		throw "Missing required parameter(s): " + thePath;
+		throw new Error("Missing required parameter(s): " + thePath);
 	}
 	thePath = path.join("", thePath);
 	return thePath;
@@ -231,7 +231,7 @@ exports.setDefaultMethod = function(theMethod) {
 	if(theMethod.match(/^(get|post|put|del|all)$/i)) {
 		defaultMethod = theMethod.toLowerCase();
 	} else {
-		throw "Invalid HTTP method name: " + theMethod + ". Should be one of: get, post, put, del, or all.";
+		throw new Error("Invalid HTTP method name '" + theMethod + "'. Should be: get, post, put, del, or all.");
 	}
 };
 
