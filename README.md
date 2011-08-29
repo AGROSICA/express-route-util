@@ -21,12 +21,20 @@ The URL hierarchy is defined by the user in a simple JSON tree such as:
     '/': 'index',
     'get,post/login': 'login',
     'post/logout': ['common.requireLogin', 'logout'],
-    '/social' : {
+    '/social': {
         '/': 'social.index',
         '/profile': {
             '/:username': 'social.viewProfile',
             'get,post/edit': ['common.requireLogin', 'social.editProfile']
         }
+    },
+    '/admin': {
+	'required': {
+            'prefix': 'common.requireLogin',
+            'postfix': ['debug.footer', 'debug.showErrors']
+        },
+        '/': 'admin.index',
+        'get,post/users': 'admin.users'
     }
 }
 ```
@@ -43,6 +51,36 @@ When a key is holding an object, any HTTP methods you indicate are ignored, and
 the given URL is prepended to the URLs of all keys within the object, so the
 ``social.editProfile`` controller would have a URL of ``/social/profile/edit/``
 and the URL will function for both GET and POST requests.
+
+The ``required`` specifies a set of controllers that should be ``prefix``ed or
+``postfix``ed to the controllers listed for the URL. Also, a ``depth`` can be
+specified such that these controllers only affect to a certain depth within the
+tree, where the default is to attach to all URLs listed after this point in the
+tree.
+
+This depth can also be specified individually for each controller with the
+``router.DepthString`` constructor:
+
+```js
+{
+    'required': {
+        'prefix': [
+            new router.DepthString('common.requireLogin', 2),
+            new router.DepthString(1, 'debug.footer'),
+            'debug.showErrors'
+        ]
+    },
+    '/': 'social.index'
+}
+```
+
+The ``DepthString`` constructor can take the parameters in either order, and
+can be mixed with "normal" strings, but of course makes the JSON object no
+longer valid JSON. Beyond that, the utility of having mixed expirations on
+required controllers at a given level is small, since this can make the
+controller definition hard to read in most cases, and the extra verbosity of
+declaring the same controller a few times shouldn't be that big of a deal, but
+the feature is there.
 
 ## Usage and Recommendations
 
