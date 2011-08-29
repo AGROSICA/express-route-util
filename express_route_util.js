@@ -46,6 +46,7 @@
 // libraries to traverse the directory structure.
 var fs = require('fs');
 var path = require('path');
+var express = require('express');
 
 // A hash of controllers to URL Paths
 var controllerToPathHash = {};
@@ -172,8 +173,8 @@ function buildRoutes(express, controllers, routeObj, currPath, required) {
 
 			// Convert the strings into function references and register the function with the URL lookup hashtable
 			for(var i = 0; i < expressCall.length; i++) {
-				expressCall[i] = getController(controllers, expressCall[i]);
 				controllerToPathHash[expressCall[i]] = routeUrl;
+				expressCall[i] = getController(controllers, expressCall[i]);
 			}
 
 			// Add the path to the beginning of the array to match the Express API
@@ -188,7 +189,7 @@ function buildRoutes(express, controllers, routeObj, currPath, required) {
 				express[theMethod].apply(express, expressCall);
 			}
 		// Recurse into the object and handle its leaves
-		} else if(typeof(routeObj[route] == "object")) {
+		} else if(typeof(routeObj[route] == "object") && Object.getPrototypeOf(Object.getPrototypeOf(routeObj[route])) === null) {
 			buildRoutes(express, controllers, routeObj[route], path.join(currPath, route), required);
 		// Unsupported datatype encountered
 		} else {
@@ -200,21 +201,25 @@ function buildRoutes(express, controllers, routeObj, currPath, required) {
 // ## The *registerRoutes* function
 // is the external API call that loads the desired source code and attaches the
 // controllers to the specified URLs.
-exports.registerRoutes = function(express, pathToControllerTree, controllerPath) {
+exports.registerRoutes = function(server, pathToControllerTree, controllerPath) {
 	if(controllerPath == null) {
 		controllerPath = "./";
 	} else if(typeof(controllerPath) != "string") {
 		throw new Error("Path must be a string or not included");
 	}
+	if(!(server instanceof express.HTTPServer || server instanceof express.HTTPSServer)) {
+		throw new Error("Must be given an Express server");
+	}
 	var controllers = loadControllers(controllerPath, {});
-	buildRoutes(express, controllers, pathToControllerTree, "");
+	buildRoutes(server, controllers, pathToControllerTree, "");
 };
 
 // ## The *getControllerUrl* function
 // is the external API call that parses the path string in the
 // ``controllerToPathHash`` and generates an *absolute for the server* URL
 exports.getControllerUrl = function(controller, params) {
-	var thePath = controllerToPathHash[controller] || "";
+	var thePath = controllerToPathHash[controller];
+	if(!thePath) { throw new Error('Invalid Controller Requested'); }
 	for(var param in params) {
 		thePath = thePath.replace(new RegExp(":" + param + "\\?*", "g"), params[param]);
 	}
