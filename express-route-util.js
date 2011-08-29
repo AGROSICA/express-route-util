@@ -121,17 +121,19 @@ function buildRoutes(express, controllers, routeObj, currPath, required) {
 	if(!routeObj.required) { routeObj.required = {prefix: [], postfix: []}; }
 
 	// Set the default `depth` for `required` methods to Infinity, so they affect all levels below them.
-	if(!routeObj.required.depth) { routeObj.required.depth = Infinity; }
+	if(typeof(routeObj.required.depth) == 'undefined') { routeObj.required.depth = Infinity; }
 
 	// Add the newly-defined required methods to the `required` object
 	if(routeObj.required.prefix) { required.prefix = required.prefix.concat(routeObj.required.prefix); }
-	if(routeObj.required.postfix) { required.postfix = routeObj.required.postfix.concat(required.postfix); }
+	if(routeObj.required.postfix) { required.postfix = routeObj.required.postfix.concat(required.postfix); i}
 
 	// Remove no-longer applicable methods from the `required` object, and decrement the `depth` counter
 	var adjustDepth = function(objArray) {
 		for(var i = 0; i < objArray.length; i++) {
 			if(typeof(objArray[i]) != "object") { objArray[i] = new String(objArray[i]); }
-			if(!objArray[i].depth) { objArray[i].depth = routeObj.required.depth; }
+			if(typeof(objArray[i].depth) == 'undefined') {
+				objArray[i].depth = typeof(routeObj.required.depth) == 'undefined' ? Infinity : routeObj.required.depth;
+			}
 			if(objArray[i].depth < 0) {
 				objArray.splice(i, 1);
 				i--;
@@ -173,8 +175,8 @@ function buildRoutes(express, controllers, routeObj, currPath, required) {
 
 			// Convert the strings into function references and register the function with the URL lookup hashtable
 			for(var i = 0; i < expressCall.length; i++) {
-				controllerToPathHash[expressCall[i]] = routeUrl;
-				expressCall[i] = getController(controllers, expressCall[i]);
+				controllerToPathHash[expressCall[i].toString()] = routeUrl;
+				expressCall[i] = getController(controllers, expressCall[i].toString());
 			}
 
 			// Add the path to the beginning of the array to match the Express API
@@ -190,7 +192,7 @@ function buildRoutes(express, controllers, routeObj, currPath, required) {
 			}
 		// Recurse into the object and handle its leaves
 		} else if(typeof(routeObj[route] == "object") && Object.getPrototypeOf(Object.getPrototypeOf(routeObj[route])) === null) {
-			buildRoutes(express, controllers, routeObj[route], path.join(currPath, route), required);
+			buildRoutes(express, controllers, routeObj[route], path.join(currPath, route), mergeObjs({}, required));
 		// Unsupported datatype encountered
 		} else {
 			throw new Error("Invalid Route Definition");

@@ -1,14 +1,14 @@
 {
   "name": "express-route-util",
   "description": "A Django-inspired routing and controller organization utility for the Express framework.",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "homepage": "https://github.com/AGROSICA/express-route-util",
   "repository": {
     "type": "git",
     "url": "git://github.com/AGROSICA/express-route-util.git"
   },
   "author": "David Ellis and Alain Rodriguez <d.f.ellis@ieee.org> (http://dfellis.posterous.com)",
-  "main": "express_route_util.js",
+  "main": "express-route-util.js",
   "directories": {
     "lib": "."
   },
