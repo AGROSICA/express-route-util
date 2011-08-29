@@ -29,7 +29,7 @@ The URL hierarchy is defined by the user in a simple JSON tree such as:
         }
     },
     '/admin': {
-	'required': {
+        'required': {
             'prefix': 'common.requireLogin',
             'postfix': ['debug.footer', 'debug.showErrors']
         },
