@@ -46,7 +46,10 @@
 // libraries to traverse the directory structure.
 var fs = require('fs');
 var path = require('path');
-var express = require('express');
+
+//Taking out express validation right now because of weirdness with NPM
+//dependencies. Will be fixed in a future version.
+//var express = require('express');
 
 // A hash of controllers to URL Paths
 var controllerToPathHash = {};
@@ -209,9 +212,11 @@ exports.registerRoutes = function(server, pathToControllerTree, controllerPath) 
 	} else if(typeof(controllerPath) != "string") {
 		throw new Error("Path must be a string or not included");
 	}
-	if(!(server instanceof express.HTTPServer || server instanceof express.HTTPSServer)) {
-		throw new Error("Must be given an Express server");
-	}
+	//Eliminating this check because installing through NPM will break this for now
+	//Hope to restore this code shortly
+	//if(!(server instanceof express.HTTPServer || server instanceof express.HTTPSServer)) {
+	//	throw new Error("Must be given an Express server");
+	//}
 	var controllers = loadControllers(controllerPath, {});
 	buildRoutes(server, controllers, pathToControllerTree, "");
 };
