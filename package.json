@@ -1,7 +1,7 @@
 {
   "name": "express-route-util",
   "description": "A Django-inspired routing and controller organization utility for the Express framework.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "homepage": "https://github.com/AGROSICA/express-route-util",
   "repository": {
     "type": "git",
@@ -13,7 +13,7 @@
     "lib": "."
   },
   "engines": {
-    "node": "0.4.x"
+    "node": ">=0.4.x"
   },
   "dependencies": {
     "express": ">=2.3.3"
